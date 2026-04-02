@@ -212,7 +212,16 @@
 const SUPABASE_URL = "https://ayicbpesfnhmuwsdfsgc.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_xxxxxxxxxxxxxxxxx";
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabase = null;
+try {
+  if (window.supabase && window.supabase.createClient) {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } else {
+    console.warn("Supabase CDN failed to load properly. Falling back to local storage.");
+  }
+} catch(e) {
+  console.error("Error creating Supabase client:", e);
+}
 
 const LABELS = ['1st Preference','2nd Preference','3rd Preference','4th Preference','5th Preference'];
 const KEYS = ['position_1','position_2','position_3','position_4','position_5'];
@@ -245,6 +254,7 @@ async function initializeApp() {
 
 // Fetch session from Supabase
 async function fetchSession() {
+  if (!supabase) return null;
   try {
     const { data, error } = await supabase
       .from('counting_session')
@@ -283,6 +293,8 @@ async function createSessionIfNotExists() {
     updated_at: new Date().toISOString()
   };
   
+  if (!supabase) return newSession;
+
   try {
     const { data, error } = await supabase
       .from('counting_session')
@@ -304,6 +316,10 @@ async function createSessionIfNotExists() {
 // Update specific field in Supabase
 async function updateSession(field, value) {
   setSaveStatus('saving');
+  if (!supabase) {
+    setSaveStatus('offline');
+    return;
+  }
   try {
     if (sessionRowId) {
       const { error } = await supabase
@@ -316,6 +332,8 @@ async function updateSession(field, value) {
         
       if (error) throw error;
       setSaveStatus('saved');
+    } else {
+      setSaveStatus('offline');
     }
   } catch (err) {
     console.error("Supabase update error:", err);
@@ -460,6 +478,6 @@ function showToast(msg) {
   setTimeout(() => t.classList.remove('show'), 2500);
 }
 
-// Document Load entrypoint
-window.addEventListener('DOMContentLoaded', initializeApp);
+// Call directly since script is at the bottom of the body
+initializeApp();
 </script>
