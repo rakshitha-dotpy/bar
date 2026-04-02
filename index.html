@@ -1,0 +1,465 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Manrope', sans-serif; }
+  #app {
+    background: #0a0e1a;
+    min-height: 100vh;
+    color: #f0f4ff;
+    font-family: Georgia, serif;
+    padding: 0 0 40px;
+  }
+  .header {
+    background: #0d1120;
+    border-bottom: 1px solid #1e2d45;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .header-title { font-size: 14px; font-weight: 700; color: #f0f4ff; letter-spacing: 0.02em; }
+  .header-sub { font-size: 11px; color: #7a8aaa; }
+  .save-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+  .save-label { font-size: 12px; }
+  .save-saved .save-dot { background: #22c55e; }
+  .save-saved .save-label { color: #22c55e; }
+  .save-saving .save-dot { background: #f59e0b; animation: pulse 1s infinite; }
+  .save-saving .save-label { color: #f59e0b; }
+  .save-offline .save-dot { background: #ef4444; }
+  .save-offline .save-label { color: #ef4444; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .main { max-width: 520px; margin: 0 auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+  .card {
+    background: #111827;
+    border: 1px solid #1e2d45;
+    border-radius: 12px;
+    padding: 16px;
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #7a8aaa;
+    margin-bottom: 12px;
+  }
+
+  .counter-card { border: 1px solid #1e2d45; }
+  .counter-card.pos-1 { border-left: 4px solid #c9a84c; }
+  .counter-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .counter-label { font-size: 13px; color: #7a8aaa; letter-spacing: 0.05em; min-width: 100px; }
+  .counter-num { font-size: 52px; font-weight: 800; color: #f0f4ff; line-height: 1; min-width: 80px; text-align: center; }
+  .counter-btns { display: flex; flex-direction: column; gap: 6px; }
+  .btn-plus {
+    background: #c9a84c; color: #0a0e1a; border: none; border-radius: 8px;
+    font-size: 18px; font-weight: 800; width: 56px; height: 52px; cursor: pointer;
+    font-family: Georgia, serif;
+  }
+  .btn-plus:active { opacity: 0.8; transform: scale(0.97); }
+  .btn-minus {
+    background: #1e2d45; color: #ef4444; border: none; border-radius: 8px;
+    font-size: 16px; font-weight: 700; width: 56px; height: 40px; cursor: pointer;
+    font-family: Georgia, serif;
+  }
+  .btn-minus:active { opacity: 0.8; }
+
+  .quick-add-grid { display: flex; flex-direction: column; gap: 8px; }
+  .qa-btn {
+    background: #111827; border: 1px solid #1e2d45; color: #f0f4ff;
+    border-radius: 8px; padding: 0 16px; height: 52px; text-align: left;
+    font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px;
+    font-family: Georgia, serif; width: 100%;
+  }
+  .qa-btn:active { background: #1a2438; }
+  .qa-plus { color: #c9a84c; font-size: 18px; font-weight: 800; }
+
+  .totals-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #1e2d45; font-size: 14px; }
+  .totals-row:last-child { border-bottom: none; }
+  .totals-grand { display: flex; justify-content: space-between; padding: 10px 0 0; font-size: 18px; font-weight: 800; color: #c9a84c; }
+
+  .ballot-row { display: flex; align-items: center; justify-content: space-between; }
+  .ballot-num { font-size: 48px; font-weight: 800; color: #f0f4ff; }
+  .ballot-btns { display: flex; flex-direction: column; gap: 6px; }
+  .btn-ballot-next {
+    background: #c9a84c; color: #0a0e1a; border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 700; padding: 10px 16px; cursor: pointer; font-family: Georgia, serif;
+  }
+  .btn-ballot-prev {
+    background: #1e2d45; color: #7a8aaa; border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 600; padding: 10px 16px; cursor: pointer; font-family: Georgia, serif;
+  }
+
+  .last-action-text { font-size: 14px; color: #f0f4ff; margin-bottom: 4px; }
+  .last-action-time { font-size: 12px; color: #7a8aaa; margin-bottom: 12px; }
+  .last-action-none { font-size: 14px; color: #7a8aaa; font-style: italic; }
+  .btn-undo {
+    background: #1e2d45; color: #f0f4ff; border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 600; padding: 12px 20px; cursor: pointer; width: 100%;
+    font-family: Georgia, serif;
+  }
+  .btn-undo:active { opacity: 0.8; }
+
+  textarea {
+    width: 100%; background: #0d1120; border: 1px solid #1e2d45; border-radius: 8px;
+    color: #f0f4ff; font-size: 14px; padding: 12px; resize: vertical; min-height: 80px;
+    font-family: Georgia, serif; outline: none;
+  }
+  textarea::placeholder { color: #3a4a60; }
+
+  .export-row { display: flex; gap: 8px; }
+  .btn-export {
+    flex: 1; background: #1e2d45; color: #f0f4ff; border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 600; padding: 12px; cursor: pointer; font-family: Georgia, serif;
+  }
+  .btn-import {
+    flex: 1; background: #1e2d45; color: #c9a84c; border: 1px solid #c9a84c; border-radius: 8px;
+    font-size: 13px; font-weight: 600; padding: 12px; cursor: pointer; font-family: Georgia, serif;
+  }
+
+  .btn-reset {
+    width: 100%; background: transparent; color: #ef444488; border: 1px solid #ef444433;
+    border-radius: 8px; font-size: 13px; font-weight: 600; padding: 14px; cursor: pointer;
+    font-family: Georgia, serif;
+  }
+  .btn-reset:hover { background: #ef444411; color: #ef4444; }
+
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8);
+    display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px;
+  }
+  .modal {
+    background: #111827; border: 1px solid #1e2d45; border-radius: 16px;
+    padding: 24px; width: 100%; max-width: 380px;
+  }
+  .modal-title { font-size: 18px; font-weight: 800; color: #ef4444; margin-bottom: 8px; }
+  .modal-text { font-size: 14px; color: #7a8aaa; margin-bottom: 16px; line-height: 1.6; }
+  .modal-input {
+    width: 100%; background: #0d1120; border: 1px solid #1e2d45; border-radius: 8px;
+    color: #f0f4ff; font-size: 16px; padding: 12px; margin-bottom: 12px; outline: none;
+    font-family: Georgia, serif; text-align: center; letter-spacing: 0.1em;
+  }
+  .modal-btns { display: flex; gap: 8px; }
+  .btn-confirm-reset {
+    flex: 1; background: #ef4444; color: white; border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 700; padding: 12px; cursor: pointer; font-family: Georgia, serif;
+  }
+  .btn-confirm-reset:disabled { opacity: 0.3; cursor: not-allowed; }
+  .btn-cancel {
+    flex: 1; background: #1e2d45; color: #f0f4ff; border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 600; padding: 12px; cursor: pointer; font-family: Georgia, serif;
+  }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #22c55e; color: #0a0e1a; font-weight: 700; font-size: 13px;
+    padding: 10px 20px; border-radius: 8px; z-index: 200; opacity: 0; transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+</style>
+
+<div id="app">
+  <div class="header">
+    <div class="header-left">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+        <circle cx="14" cy="14" r="13" stroke="#c9a84c" stroke-width="1.5"/>
+        <line x1="14" y1="5" x2="14" y2="23" stroke="#c9a84c" stroke-width="1.5"/>
+        <line x1="6" y1="9" x2="22" y2="9" stroke="#c9a84c" stroke-width="1.5"/>
+        <path d="M6 9 Q3 13 6 17" stroke="#c9a84c" stroke-width="1.2" fill="none"/>
+        <path d="M22 9 Q25 13 22 17" stroke="#c9a84c" stroke-width="1.2" fill="none"/>
+        <line x1="6" y1="17" x2="22" y2="17" stroke="#c9a84c" stroke-width="0.8" stroke-dasharray="2,2"/>
+      </svg>
+      <div>
+        <div class="header-title">PS Amal Raj — Live Count</div>
+        <div class="header-sub">Bar Council Counting Tracker</div>
+      </div>
+    </div>
+    <div id="save-status" class="save-saved" style="display:flex;align-items:center;">
+      <span class="save-dot"></span><span class="save-label">Saved</span>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <div id="counters"></div>
+
+
+
+    <div class="card">
+      <div class="card-title">Backup — Export / Import</div>
+      <div style="font-size:12px;color:#7a8aaa;margin-bottom:10px;">Use Export to copy data to another device. Paste into Import to restore.</div>
+      <div class="export-row">
+        <button class="btn-export" onclick="exportData()">⬇ Export Data</button>
+        <button class="btn-import" onclick="importData()">⬆ Import Data</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Import Supabase CDN -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// SUPABASE SETUP PLACEHOLDERS
+const SUPABASE_URL = "https://ayicbpesfnhmuwsdfsgc.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_xxxxxxxxxxxxxxxxx";
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const LABELS = ['1st Preference','2nd Preference','3rd Preference','4th Preference','5th Preference'];
+const KEYS = ['position_1','position_2','position_3','position_4','position_5'];
+const LOCAL_STORAGE_KEY = "vote_count_backup";
+
+let state = null;
+let sessionRowId = null;
+
+// Initialize app on load
+async function initializeApp() {
+  setSaveStatus('saving');
+  let data = await fetchSession();
+  
+  if (!data) {
+    data = loadFromLocalStorage();
+  }
+  
+  if (!data) {
+    data = await createSessionIfNotExists();
+  }
+  
+  state = data;
+  syncUI(state);
+  
+  // Attach reset button dynamically to maintain UI flow
+  addResetButton();
+  
+  setSaveStatus('saved');
+}
+
+// Fetch session from Supabase
+async function fetchSession() {
+  try {
+    const { data, error } = await supabase
+      .from('counting_session')
+      .select('*')
+      .limit(1)
+      .single();
+      
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return await createSessionIfNotExists();
+      }
+      throw error;
+    }
+    
+    if (data) {
+      sessionRowId = data.id;
+      return data;
+    }
+  } catch (err) {
+    console.error("Supabase fetch error:", err);
+    return null;
+  }
+}
+
+// Create session with default values
+async function createSessionIfNotExists() {
+  const newSession = {
+    candidate_name: 'PS Amal Raj',
+    position_1: 0,
+    position_2: 0,
+    position_3: 0,
+    position_4: 0,
+    position_5: 0,
+    ballots_processed: 0,
+    notes: '',
+    updated_at: new Date().toISOString()
+  };
+  
+  try {
+    const { data, error } = await supabase
+      .from('counting_session')
+      .insert([newSession])
+      .select()
+      .single();
+      
+    if (error) throw error;
+    if (data) {
+      sessionRowId = data.id;
+      return data;
+    }
+  } catch (err) {
+    console.error("Supabase creation error:", err);
+  }
+  return newSession;
+}
+
+// Update specific field in Supabase
+async function updateSession(field, value) {
+  setSaveStatus('saving');
+  try {
+    if (sessionRowId) {
+      const { error } = await supabase
+        .from('counting_session')
+        .update({ 
+          [field]: value, 
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', sessionRowId);
+        
+      if (error) throw error;
+      setSaveStatus('saved');
+    }
+  } catch (err) {
+    console.error("Supabase update error:", err);
+    setSaveStatus('offline');
+  }
+}
+
+// Synchronize UI
+function syncUI(data) {
+  const el = document.getElementById('counters');
+  el.innerHTML = KEYS.map((k, i) => `
+    <div class="card counter-card ${i===0?'pos-1':''}" style="margin-bottom:10px;">
+      <div class="counter-row">
+        <div>
+          <div class="counter-label">${LABELS[i]}</div>
+          <div class="counter-num" id="cnt-${k}">${data[k] || 0}</div>
+        </div>
+        <div class="counter-btns">
+          <button class="btn-plus" onclick="handleCount('${k}', 1)">＋1</button>
+          <button class="btn-minus" onclick="handleCount('${k}', -1)">－1</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Handle plus and minus actions
+async function handleCount(key, delta) {
+  if (!state) return;
+  
+  const prevValue = state[key] || 0;
+  const newValue = Math.max(0, prevValue + delta);
+  
+  if (newValue === prevValue) return; // Ignore going below 0
+  
+  // Optimistic UI update
+  state[key] = newValue;
+  document.getElementById('cnt-' + key).textContent = state[key];
+  
+  // Backup Local
+  saveToLocalStorage(state);
+  
+  // Update Backend
+  await updateSession(key, newValue);
+}
+
+// Local storage backup functions
+function saveToLocalStorage(data) {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+  } catch(e) {
+    console.error("LocalStorage write error", e);
+  }
+}
+
+function loadFromLocalStorage() {
+  try {
+    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch(e) {
+    console.error("LocalStorage read error", e);
+  }
+  return null;
+}
+
+// Save status indicator
+function setSaveStatus(s) {
+  const el = document.getElementById('save-status');
+  if (!el) return;
+  el.className = 'save-' + s;
+  const labels = { saved: '✓ Saved', saving: 'Syncing…', offline: 'Offline' };
+  el.innerHTML = `<span class="save-dot"></span><span class="save-label">${labels[s]}</span>`;
+}
+
+// Backup Export / Import functionality
+function exportData() {
+  if (!state) return;
+  const text = JSON.stringify(state, null, 2);
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => showToast('Data copied to clipboard!'));
+  } else {
+    prompt('Copy this data:', text);
+  }
+}
+
+function importData() {
+  const text = prompt('Paste exported backup data here:');
+  if (!text) return;
+  try {
+    const parsed = JSON.parse(text);
+    if (typeof parsed.position_1 === 'number') {
+      state = parsed;
+      saveToLocalStorage(state);
+      syncUI(state);
+      
+      // Update all positions to Supabase
+      KEYS.forEach(k => updateSession(k, state[k]));
+      
+      showToast('Data imported successfully!');
+    } else {
+      alert('Invalid data format.');
+    }
+  } catch(e) {
+    alert('Could not parse data. Make sure it is valid JSON.');
+  }
+}
+
+// Reset functionality (Safety Confirmation)
+function addResetButton() {
+  if (document.getElementById('btn-reset-dynamic')) return;
+  const resetBtnHTML = `<button id="btn-reset-dynamic" class="btn-reset" onclick="confirmReset()" style="margin-top: 12px;">Reset Session</button>`;
+  document.querySelector('.main').insertAdjacentHTML('beforeend', resetBtnHTML);
+}
+
+async function confirmReset() {
+  const confirmed = confirm("⚠ DANGER: This will permanently reset all live counts. Proceed?");
+  if (confirmed) {
+    const userInput = prompt("Type 'RESET' in all caps to clear data:");
+    if (userInput === 'RESET') {
+      // Clear data
+      KEYS.forEach(k => { state[k] = 0; });
+      syncUI(state);
+      saveToLocalStorage(state);
+      
+      // Attempt to sync 0s to backend
+      for (const k of KEYS) {
+         await updateSession(k, 0);
+      }
+      
+      showToast('Session logic has been reset.');
+    } else {
+      alert("Reset cancelled. Incorrect phrase.");
+    }
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// Document Load entrypoint
+window.addEventListener('DOMContentLoaded', initializeApp);
+</script>
